@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tutor Feedback Dashboard — Cuemath</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #f1f5f9; color: #1e293b; font-size: 14px; }
+
+  /* Print/PDF styles */
+  @media print {
+    body { background: white; font-size: 11px; }
+    .no-print { display: none !important; }
+    .section { break-inside: avoid; page-break-inside: avoid; }
+    .card { break-inside: avoid; }
+    nav { position: static !important; }
+  }
+
+  /* Navigation */
+  nav { position: sticky; top: 0; z-index: 100; background: #1e293b; padding: 12px 24px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+  nav h1 { color: white; font-size: 18px; font-weight: 700; letter-spacing: -0.5px; }
+  nav .subtitle { color: #94a3b8; font-size: 12px; }
+  .nav-pills { display: flex; gap: 4px; margin-left: auto; }
+  .nav-pill { padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; background: #334155; color: #94a3b8; transition: all 0.2s; }
+  .nav-pill:hover { background: #475569; color: white; }
+  .nav-pill.active { background: #3b82f6; color: white; }
+  .pdf-btn { padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid #475569; background: transparent; color: #94a3b8; transition: all 0.2s; }
+  .pdf-btn:hover { background: #475569; color: white; }
+
+  /* Filters */
+  .filters { padding: 12px 24px; background: white; border-bottom: 1px solid #e2e8f0; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .filter-group { display: flex; align-items: center; gap: 6px; }
+  .filter-group label { font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+  .filter-btn { padding: 4px 12px; border-radius: 16px; font-size: 12px; font-weight: 500; cursor: pointer; border: 1px solid #e2e8f0; background: white; color: #475569; transition: all 0.2s; }
+  .filter-btn:hover { border-color: #93c5fd; background: #eff6ff; }
+  .filter-btn.active { background: #3b82f6; color: white; border-color: #3b82f6; }
+
+  /* Layout */
+  .container { max-width: 1200px; margin: 0 auto; padding: 20px 24px; }
+  .section { margin-bottom: 28px; display: none; }
+  .section.active { display: block; }
+  .section-title { font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .section-title .badge { font-size: 11px; background: #e2e8f0; color: #64748b; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+
+  /* Cards */
+  .grid { display: grid; gap: 16px; }
+  .grid-4 { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+  .grid-3 { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+  .grid-2 { grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); }
+  .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; }
+  .card-header { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #94a3b8; margin-bottom: 8px; }
+  .card-value { font-size: 32px; font-weight: 800; color: #1e293b; line-height: 1; }
+  .card-detail { font-size: 12px; color: #64748b; margin-top: 4px; }
+  .card-value.green { color: #16a34a; }
+  .card-value.blue { color: #2563eb; }
+  .card-value.amber { color: #d97706; }
+  .card-value.red { color: #dc2626; }
+
+  /* Rating stars */
+  .stars { display: inline-flex; gap: 2px; }
+  .star { color: #fbbf24; font-size: 14px; }
+  .star.empty { color: #e2e8f0; }
+
+  /* Bar charts */
+  .bar-chart { display: flex; flex-direction: column; gap: 8px; }
+  .bar-row { display: flex; align-items: center; gap: 10px; }
+  .bar-label { font-size: 12px; color: #475569; min-width: 120px; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar-track { flex: 1; height: 24px; background: #f1f5f9; border-radius: 6px; overflow: hidden; position: relative; }
+  .bar-fill { height: 100%; border-radius: 6px; transition: width 0.5s ease; display: flex; align-items: center; padding-left: 8px; }
+  .bar-fill span { font-size: 11px; font-weight: 600; color: white; white-space: nowrap; }
+  .bar-count { font-size: 12px; color: #94a3b8; min-width: 30px; font-weight: 600; }
+
+  /* Donut chart */
+  .donut-wrap { display: flex; align-items: center; gap: 24px; }
+  .donut-svg { width: 140px; height: 140px; }
+  .donut-legend { display: flex; flex-direction: column; gap: 6px; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+  /* Chapter cards */
+  .chapter-card { cursor: pointer; transition: all 0.2s; }
+  .chapter-card:hover { border-color: #93c5fd; box-shadow: 0 4px 12px rgba(59,130,246,0.1); }
+  .chapter-name { font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+  .chapter-meta { font-size: 12px; color: #64748b; }
+  .chapter-rating { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+  .rating-badge { font-size: 20px; font-weight: 800; }
+  .flag { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px; margin: 2px; }
+  .flag-green { background: #dcfce7; color: #166534; }
+  .flag-amber { background: #fef3c7; color: #92400e; }
+  .flag-red { background: #fef2f2; color: #991b1b; }
+  .flag-blue { background: #dbeafe; color: #1e40af; }
+
+  /* Lesson table */
+  .lesson-table { width: 100%; border-collapse: collapse; }
+  .lesson-table th { text-align: left; padding: 10px 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #94a3b8; border-bottom: 2px solid #e2e8f0; }
+  .lesson-table td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; font-size: 13px; vertical-align: top; }
+  .lesson-table tr:hover { background: #f8fafc; }
+
+  /* Feedback quote */
+  .quote { background: #f8fafc; border-left: 3px solid #3b82f6; padding: 10px 14px; margin: 6px 0; border-radius: 0 8px 8px 0; font-size: 12px; color: #475569; line-height: 1.5; }
+  .quote-author { font-size: 11px; color: #94a3b8; font-weight: 600; margin-top: 4px; }
+
+  /* Theme tags */
+  .theme-tag { display: inline-block; font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 12px; margin: 2px; background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+
+  /* Principle card */
+  .principle-card { background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; padding: 14px 16px; }
+  .principle-grade { font-size: 10px; font-weight: 700; text-transform: uppercase; color: #92400e; letter-spacing: 0.5px; }
+  .principle-text { font-size: 13px; color: #1e293b; font-weight: 500; margin-top: 4px; line-height: 1.5; }
+  .principle-evidence { font-size: 11px; color: #94a3b8; margin-top: 4px; }
+
+  /* Tutor leaderboard */
+  .tutor-bar { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
+  .tutor-rank { font-size: 16px; font-weight: 800; color: #94a3b8; width: 30px; text-align: center; }
+  .tutor-rank.gold { color: #f59e0b; }
+  .tutor-rank.silver { color: #94a3b8; }
+  .tutor-rank.bronze { color: #b45309; }
+  .tutor-name { font-size: 14px; font-weight: 600; color: #1e293b; min-width: 150px; }
+  .tutor-track { flex: 1; height: 28px; background: #f1f5f9; border-radius: 8px; overflow: hidden; }
+  .tutor-fill { height: 100%; background: linear-gradient(90deg, #3b82f6, #60a5fa); border-radius: 8px; display: flex; align-items: center; justify-content: flex-end; padding-right: 10px; transition: width 0.5s; }
+  .tutor-fill span { font-size: 12px; font-weight: 700; color: white; }
+  .tutor-badges { display: flex; gap: 4px; }
+  .grade-badge { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px; }
+  .grade-1 { background: #dcfce7; color: #166534; }
+  .grade-2 { background: #dbeafe; color: #1e40af; }
+  .grade-3 { background: #fef3c7; color: #92400e; }
+  .grade-4 { background: #fce7f3; color: #9d174d; }
+
+  /* Back button */
+  .back-btn { font-size: 12px; color: #3b82f6; cursor: pointer; font-weight: 600; background: none; border: none; padding: 4px 0; }
+  .back-btn:hover { text-decoration: underline; }
+
+  /* Action item */
+  .action-item { padding: 14px 16px; border-radius: 10px; border: 1px solid #fecaca; background: #fff5f5; margin-bottom: 10px; }
+  .action-title { font-size: 13px; font-weight: 700; color: #991b1b; }
+  .action-detail { font-size: 12px; color: #475569; margin-top: 4px; line-height: 1.5; }
+
+  /* Last updated */
+  .last-updated { font-size: 11px; color: #94a3b8; text-align: center; padding: 16px; }
+
+  /* Summary section */
+  .summary-header { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: white; border-radius: 16px; padding: 32px; margin-bottom: 20px; }
+  .summary-header h2 { font-size: 22px; font-weight: 800; margin-bottom: 4px; }
+  .summary-header .sub { color: #94a3b8; font-size: 13px; }
+  .summary-stats { display: flex; gap: 24px; margin-top: 20px; flex-wrap: wrap; }
+  .summary-stat { text-align: center; }
+  .summary-stat .val { font-size: 28px; font-weight: 800; }
+  .summary-stat .label { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+  .action-card { border-left: 4px solid; border-radius: 0 12px 12px 0; padding: 16px 20px; background: white; margin-bottom: 12px; }
+  .action-card h4 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .action-card p { font-size: 13px; color: #475569; line-height: 1.6; }
+  .action-card.action-1 { border-color: #3b82f6; }
+  .action-card.action-2 { border-color: #8b5cf6; }
+  .action-card.action-3 { border-color: #f59e0b; }
+  .weekly-spotlight { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 12px; }
+  .week-card { flex: 1; min-width: 200px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; }
+  .week-card .week-label { font-size: 11px; font-weight: 700; color: #3b82f6; text-transform: uppercase; letter-spacing: 0.5px; }
+  .week-card .week-count { font-size: 11px; color: #94a3b8; }
+  .week-card .week-tutors { margin-top: 6px; font-size: 12px; color: #1e293b; line-height: 1.6; }
+  .thankyou-banner { background: linear-gradient(135deg, #dcfce7, #d1fae5); border: 1px solid #a7f3d0; border-radius: 12px; padding: 20px 24px; text-align: center; margin-top: 20px; }
+  .thankyou-banner p { font-size: 14px; color: #065f46; font-weight: 500; line-height: 1.6; }
+  .thankyou-banner .emoji { font-size: 24px; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div>
+    <h1>Tutor Feedback Dashboard</h1>
+    <div class="subtitle">Cuemath Curriculum Review</div>
+  </div>
+  <div class="nav-pills no-print">
+    <button class="nav-pill active" data-section="overview">Overview</button>
+    <button class="nav-pill" data-section="grades">By Grade</button>
+    <button class="nav-pill" data-section="chapters">Chapters</button>
+    <button class="nav-pill" data-section="themes">Themes</button>
+    <button class="nav-pill" data-section="actions">Actions</button>
+    <button class="nav-pill" data-section="tutors">Tutors</button>
+    <button class="nav-pill" data-section="summary">Summary</button>
+  </div>
+  <button class="pdf-btn no-print" onclick="window.print()">Export PDF</button>
+</nav>
+
+<div class="filters no-print" id="gradeFilters">
+  <div class="filter-group">
+    <label>Grade:</label>
+    <button class="filter-btn active" data-grade="all">All</button>
+  </div>
+</div>
+
+<div class="container" id="app"></div>
+<div class="last-updated" id="lastUpdated"></div>
+
+<script>
+// Load data
+let DATA = null;
+let SUMMARY_CONFIG = null;
+let currentSection = 'overview';
+let currentGrade = 'all';
+let drillChapter = null;
+
+// --- GOOGLE SHEETS LIVE FETCH ---
+const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1KPSez_Qc0SDWbPZkLzzs1oBkuYgnwqHZkXX3dwnpBgs/export?format=csv&gid=1190754995';
+
+// Tutor name normalization map
+const NAME_MAP = {
+  'mehak hemnani': 'Mehak Hemnani', 'mehal': 'Mehak Hemnani',
+  'rajiv': 'Rajiv Kumar',
+  'monika': 'Monika Agrawal',
+  'manesha kathpalia': 'Manesha Kathpalia', 'manesha kathpalia': 'Manesha Kathpalia',
+  'aashina chhabra': 'Aashina Chhabra', 'aashinachhabra': 'Aashina Chhabra',
+};
+
+function normalizeName(raw) {
+  if (!raw) return 'Unknown';
+  const trimmed = raw.trim();
+  const lower = trimmed.toLowerCase().replace(/\s+/g, ' ');
+  if (NAME_MAP[lower]) return NAME_MAP[lower];
+  // Title-case fallback
+  return trimmed.replace(/\b\w/g, c => c.toUpperCase());
+}
+
+// Theme extraction from free text
+const THEME_PATTERNS = [
+  { theme: 'Drag & Drop Issues', patterns: [/drag.?and.?drop|drag.?drop|dragging/i] },
+  { theme: 'Video Speed/Quality', patterns: [/video.*speed|video.*slow|video.*fast|video.*quality|voice.*energy|narration/i] },
+  { theme: 'More Fun/Games Needed', patterns: [/more fun|game|gamif|quiz.*style|reward|point.*system|playful/i] },
+  { theme: 'Language Complexity', patterns: [/language.*complex|text.?heavy|big.*words|difficult.*words|confus.*language|confus.*context/i] },
+  { theme: 'Too Many Questions', patterns: [/too many question|excessive.*question|reduce.*question/i] },
+  { theme: 'More Real-Life Context', patterns: [/real.?life|real.?world|everyday|practical.*example|relat.*context/i] },
+  { theme: 'Visual/Image Needs', patterns: [/visual|image|picture|illustrat|diagram|color/i] },
+  { theme: 'More Examples Needed', patterns: [/more example|additional example|not enough example|need.*example/i] },
+  { theme: 'Interactive Elements', patterns: [/interactiv|simulat|manipulat|click.*select|hands.?on/i] },
+  { theme: 'Error/Bug Reports', patterns: [/bug|error|not working|doesn.?t work|broken|glitch|sync|not accept/i] },
+  { theme: 'Difficulty Level', patterns: [/too easy|too hard|too difficult|difficulty|challenging|grade.?align/i] },
+  { theme: 'Length Issues', patterns: [/too long|too short|length|lengthy|more question.*needed/i] },
+];
+
+function extractThemes(texts) {
+  const found = new Set();
+  const combined = texts.filter(Boolean).join(' ');
+  if (!combined) return [];
+  THEME_PATTERNS.forEach(({ theme, patterns }) => {
+    if (patterns.some(p => p.test(combined))) found.add(theme);
+  });
+  return [...found];
+}
+
+// CSV parser (handles quoted fields with commas and newlines)
+function parseCSV(text) {
+  const rows = [];
+  let row = []; let field = ''; let inQuote = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQuote) {
+      if (c === '"' && text[i+1] === '"') { field += '"'; i++; }
+      else if (c === '"') { inQuote = false; }
+      else { field += c; }
+    } else {
+      if (c === '"') { inQuote = true; }
+      else if (c === ',') { row.push(field.trim()); field = ''; }
+      else if (c === '\n' || (c === '\r' && text[i+1] === '\n')) {
+        row.push(field.trim()); field = '';
+        if (row.length > 1) rows.push(row);
+        row = [];
+        if (c === '\r') i++;
+      } else { field += c; }
+    }
+  }
+  if (field || row.length) { row.push(field.trim()); if (row.length > 1) rows.push(row); }
+  return rows;
+}
+
+// Process CSV rows into dashboard data
+function processCSV(csvText) {
+  const rows = parseCSV(csvText);
+  if (rows.length < 2) return null;
+  const header = rows[0];
+  const dataRows = rows.slice(1);
+
+  // Deduplicate: same tutor + same first lesson = keep latest
+  const dedupMap = {};
+  dataRows.forEach(r => {
+    const name = normalizeName(r[1]);
+    // Find first non-empty lesson
+    let firstLesson = '';
+    for (let i = 4; i <= 21; i += 2) {
+      if (r[i+1] && r[i+1].trim()) { firstLesson = r[i+1].trim(); break; }
+    }
+    const key = name + '|' + firstLesson;
+    dedupMap[key] = r; // later entry overwrites earlier
+  });
+  const uniqueRows = Object.values(dedupMap);
+
+  const records = [];
+  uniqueRows.forEach(r => {
+    const name = normalizeName(r[1]);
+    const grade = (r[3] || '').trim();
+    if (!grade) return;
+
+    // Extract chapter-lesson pairs (columns 4-21, pairs of 2)
+    const lessons = [];
+    for (let i = 4; i <= 21; i += 2) {
+      const ch = (r[i] || '').trim();
+      const ls = (r[i+1] || '').trim();
+      if (ch || ls) lessons.push({ chapter: ch || ls, lesson: ls || ch });
+    }
+    if (lessons.length === 0) return;
+
+    const freeTexts = [r[27] || '', r[29] || '', r[31] || ''];
+    const themes = extractThemes([...freeTexts, r[22] || '', r[24] || '', r[28] || '']);
+
+    // Parse rating
+    let rating = 0;
+    const ratingStr = (r[30] || '').trim();
+    const ratingMatch = ratingStr.match(/^(\d)/);
+    if (ratingMatch) rating = parseInt(ratingMatch[1]);
+
+    records.push({
+      timestamp: (r[0] || '').trim(),
+      name, grade, lessons,
+      learning_outcome: (r[22] || '').trim(),
+      enough_examples: (r[23] || '').trim(),
+      learnings_engagement: (r[24] || '').trim(),
+      learnings_length: (r[25] || '').trim(),
+      learnings_language: (r[26] || '').trim(),
+      learning_suggestions: (r[27] || '').trim(),
+      practice_quality: (r[28] || '').trim(),
+      practice_suggestions: (r[29] || '').trim(),
+      rating,
+      rating_label: ratingStr,
+      overall_suggestions: (r[31] || '').trim(),
+      themes
+    });
+  });
+
+  // Generate principles per grade+theme
+  const principles = [];
+  const principleTemplates = {
+    'Drag & Drop Issues': 'Replace drag-and-drop with click/tap or type-in interactions for younger grades',
+    'Video Speed/Quality': 'Video pacing and voice energy should match the grade level \u2014 younger grades need slower, more enthusiastic delivery',
+    'More Fun/Games Needed': 'Include game-like elements and playful activities to maintain engagement',
+    'Language Complexity': 'Simplify language and avoid text-heavy explanations \u2014 keep it visual and conversational',
+    'Too Many Questions': 'Optimize question count \u2014 fewer, higher-quality questions over volume',
+    'More Real-Life Context': 'Ground abstract concepts in real-life, relatable scenarios',
+    'Visual/Image Needs': 'Add more visual aids, diagrams, and illustrations to support understanding',
+    'More Examples Needed': 'Provide additional worked examples before independent practice',
+    'Interactive Elements': 'Use interactive simulations and manipulatives where possible',
+    'Error/Bug Reports': 'Address error/bug reports based on tutor feedback',
+    'Difficulty Level': 'Ensure progressive difficulty \u2014 start accessible, build to productive struggle',
+    'Length Issues': 'Review and adjust content length based on grade-level attention spans'
+  };
+
+  const grades = [...new Set(records.map(r => r.grade))].sort();
+  grades.forEach(g => {
+    const gRecs = records.filter(r => r.grade === g);
+    const themeCounts = {};
+    gRecs.forEach(r => r.themes.forEach(t => { themeCounts[t] = (themeCounts[t]||0)+1; }));
+    Object.entries(themeCounts).sort((a,b) => b[1]-a[1]).forEach(([theme, count]) => {
+      if (count >= 2) {
+        principles.push({ grade: g, theme, count, principle: principleTemplates[theme] || theme });
+      }
+    });
+  });
+
+  return {
+    records, grades, principles,
+    tutor_names: [...new Set(records.map(r => r.name))].sort(),
+    theme_categories: THEME_PATTERNS.map(t => t.theme)
+  };
+}
+
+// Load: try Google Sheets live, fall back to data.js, fall back to inline
+function loadData() {
+  const app = document.getElementById('app');
+  app.innerHTML = '<p style="padding:60px;text-align:center;color:#94a3b8;font-size:14px;">Loading live data from Google Sheets...</p>';
+
+  // Fetch summary config (non-blocking — dashboard works without it)
+  const configURL = new URL('summary-config.json', window.location.href).href;
+  fetch(configURL).then(r => r.ok ? r.json() : null).then(c => { SUMMARY_CONFIG = c; }).catch(() => {});
+
+  fetch(SHEET_CSV_URL)
+    .then(res => {
+      if (!res.ok) throw new Error('Sheet fetch failed');
+      return res.text();
+    })
+    .then(csv => {
+      const processed = processCSV(csv);
+      if (!processed || processed.records.length === 0) throw new Error('No records parsed');
+      DATA = processed;
+      DATA._source = 'live';
+      init();
+    })
+    .catch(err => {
+      console.warn('Live fetch failed, trying data.js fallback:', err.message);
+      // Try DASHBOARD_DATA (inline or pre-loaded)
+      try {
+        if (typeof DASHBOARD_DATA !== 'undefined') {
+          DATA = DASHBOARD_DATA;
+          DATA._source = 'local';
+          init();
+          return;
+        }
+      } catch(e) {}
+      // Try loading data.js file
+      const s = document.createElement('script');
+      s.src = 'data.js';
+      s.onload = () => { DATA = DASHBOARD_DATA; DATA._source = 'local'; init(); };
+      s.onerror = () => { app.innerHTML = '<p style="padding:40px;text-align:center;color:#94a3b8;">Could not load data. Check your internet connection or ensure data.js is in the same folder.</p>'; };
+      document.head.appendChild(s);
+    });
+}
+
+function init() {
+  buildGradeFilters();
+  render();
+  const source = DATA._source === 'live' ? 'Live from Google Sheets' : 'Local data file';
+  document.getElementById('lastUpdated').textContent = `${source} \u2022 Last refreshed: ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`;
+}
+
+function buildGradeFilters() {
+  const container = document.getElementById('gradeFilters');
+  const group = container.querySelector('.filter-group');
+  DATA.grades.forEach(g => {
+    const btn = document.createElement('button');
+    btn.className = 'filter-btn';
+    btn.dataset.grade = g;
+    btn.textContent = `Grade ${g}`;
+    group.appendChild(btn);
+  });
+  container.addEventListener('click', e => {
+    if (e.target.classList.contains('filter-btn')) {
+      group.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      e.target.classList.add('active');
+      currentGrade = e.target.dataset.grade;
+      drillChapter = null;
+      render();
+    }
+  });
+}
+
+function filtered() {
+  if (currentGrade === 'all') return DATA.records;
+  return DATA.records.filter(r => r.grade === currentGrade);
+}
+
+function render() {
+  const app = document.getElementById('app');
+  app.innerHTML = '';
+
+  // For print, show all sections
+  if (window.matchMedia && window.matchMedia('print').matches) {
+    app.innerHTML = renderOverview() + renderGrades() + renderChapters() + renderThemes() + renderActions() + renderTutors() + renderSummary();
+    return;
+  }
+
+  switch(currentSection) {
+    case 'overview': app.innerHTML = renderOverview(); break;
+    case 'grades': app.innerHTML = renderGrades(); break;
+    case 'chapters': app.innerHTML = drillChapter ? renderLessonDrill() : renderChapters(); break;
+    case 'themes': app.innerHTML = renderThemes(); break;
+    case 'actions': app.innerHTML = renderActions(); break;
+    case 'tutors': app.innerHTML = renderTutors(); break;
+    case 'summary': app.innerHTML = renderSummary(); break;
+  }
+}
+
+// --- SECTION 1: OVERVIEW ---
+function renderOverview() {
+  const recs = filtered();
+  const totalResponses = recs.length;
+  const uniqueTutors = new Set(recs.map(r => r.name)).size;
+  const uniqueGrades = new Set(recs.map(r => r.grade)).size;
+  const avgRating = recs.filter(r => r.rating > 0).reduce((s, r) => s + r.rating, 0) / (recs.filter(r => r.rating > 0).length || 1);
+
+  const uniqueLessons = new Set();
+  recs.forEach(r => r.lessons.forEach(l => uniqueLessons.add(`${l.chapter}|${l.lesson}`)));
+
+  // Rating distribution
+  const ratingDist = [0,0,0,0,0];
+  recs.forEach(r => { if (r.rating >= 1 && r.rating <= 5) ratingDist[r.rating - 1]++; });
+
+  // Engagement
+  const engaging = recs.filter(r => r.learnings_engagement.toLowerCase().includes('engaging')).length;
+  const rightLength = recs.filter(r => r.learnings_length.toLowerCase().includes('just the right')).length;
+  const goodLanguage = recs.filter(r => r.learnings_language.toLowerCase().includes('explains concepts well')).length;
+  const enoughExamples = recs.filter(r => r.enough_examples.toLowerCase().startsWith('yes')).length;
+
+  const ratingColors = ['#ef4444','#f97316','#eab308','#22c55e','#16a34a'];
+  const ratingLabels = ['Needs Work','Satisfactory','Satisfactory','Very Good','Excellent'];
+
+  let donutSegments = '';
+  let cumulative = 0;
+  const total = ratingDist.reduce((a,b) => a+b, 0) || 1;
+  for (let i = 4; i >= 0; i--) {
+    const pct = (ratingDist[i] / total) * 100;
+    const dashArray = `${pct * 2.51327} ${251.327 - pct * 2.51327}`;
+    const dashOffset = -cumulative * 2.51327;
+    donutSegments += `<circle cx="70" cy="70" r="40" fill="none" stroke="${ratingColors[i]}" stroke-width="20" stroke-dasharray="${dashArray}" stroke-dashoffset="${dashOffset}" transform="rotate(-90 70 70)"/>`;
+    cumulative += pct;
+  }
+
+  let legendHtml = '';
+  for (let i = 4; i >= 0; i--) {
+    if (ratingDist[i] > 0) {
+      legendHtml += `<div class="legend-item"><span class="legend-dot" style="background:${ratingColors[i]}"></span>${i+1} - ${ratingLabels[i]}: ${ratingDist[i]} (${Math.round(ratingDist[i]/total*100)}%)</div>`;
+    }
+  }
+
+  return `
+    <div class="section active">
+      <h2 class="section-title">Overview <span class="badge">${currentGrade === 'all' ? 'All Grades' : 'Grade ' + currentGrade}</span></h2>
+      <div class="grid grid-4">
+        <div class="card"><div class="card-header">Total Responses</div><div class="card-value blue">${totalResponses}</div><div class="card-detail">${uniqueTutors} tutors</div></div>
+        <div class="card"><div class="card-header">Lessons Reviewed</div><div class="card-value">${uniqueLessons.size}</div><div class="card-detail">${uniqueGrades} grade${uniqueGrades>1?'s':''} covered</div></div>
+        <div class="card"><div class="card-header">Average Rating</div><div class="card-value ${avgRating >= 4 ? 'green' : avgRating >= 3 ? 'amber' : 'red'}">${avgRating.toFixed(1)}</div><div class="card-detail">${renderStars(avgRating)}</div></div>
+        <div class="card"><div class="card-header">Engaging</div><div class="card-value green">${Math.round(engaging/totalResponses*100)}%</div><div class="card-detail">${engaging} of ${totalResponses} say engaging</div></div>
+      </div>
+      <div class="grid grid-2" style="margin-top:16px;">
+        <div class="card">
+          <div class="card-header">Rating Distribution</div>
+          <div class="donut-wrap">
+            <svg class="donut-svg" viewBox="0 0 140 140">${donutSegments}
+              <text x="70" y="66" text-anchor="middle" font-size="24" font-weight="800" fill="#1e293b">${avgRating.toFixed(1)}</text>
+              <text x="70" y="82" text-anchor="middle" font-size="10" fill="#94a3b8">avg rating</text>
+            </svg>
+            <div class="donut-legend">${legendHtml}</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">Quick Health Check</div>
+          <div class="bar-chart">
+            ${healthBar('Engaging Learnings', engaging, totalResponses, '#22c55e')}
+            ${healthBar('Right Length', rightLength, totalResponses, '#3b82f6')}
+            ${healthBar('Clear Language', goodLanguage, totalResponses, '#8b5cf6')}
+            ${healthBar('Enough Examples', enoughExamples, totalResponses, '#f59e0b')}
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function healthBar(label, count, total, color) {
+  const pct = Math.round(count / total * 100);
+  return `<div class="bar-row">
+    <span class="bar-label">${label}</span>
+    <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${color}"><span>${pct}%</span></div></div>
+    <span class="bar-count">${count}</span>
+  </div>`;
+}
+
+function renderStars(rating) {
+  let html = '<span class="stars">';
+  for (let i = 1; i <= 5; i++) {
+    html += `<span class="star ${i <= Math.round(rating) ? '' : 'empty'}">\u2605</span>`;
+  }
+  return html + '</span>';
+}
+
+// --- SECTION 2: GRADE VIEW ---
+function renderGrades() {
+  const recs = filtered();
+  const grades = [...new Set(recs.map(r => r.grade))].sort();
+
+  let html = '<div class="section active"><h2 class="section-title">Grade-wise Comparison</h2>';
+
+  // Comparison bars
+  html += '<div class="card" style="margin-bottom:16px"><div class="card-header">Cross-Grade Comparison</div><div class="bar-chart">';
+  grades.forEach(g => {
+    const gRecs = recs.filter(r => r.grade === g);
+    const avg = gRecs.filter(r=>r.rating>0).reduce((s,r)=>s+r.rating,0) / (gRecs.filter(r=>r.rating>0).length||1);
+    const pct = (avg / 5) * 100;
+    const color = avg >= 4 ? '#22c55e' : avg >= 3 ? '#f59e0b' : '#ef4444';
+    html += `<div class="bar-row"><span class="bar-label">Grade ${g}</span><div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${color}"><span>${avg.toFixed(1)} avg</span></div></div><span class="bar-count">${gRecs.length}</span></div>`;
+  });
+  html += '</div></div>';
+
+  // Grade cards
+  html += '<div class="grid grid-2">';
+  grades.forEach(g => {
+    const gRecs = recs.filter(r => r.grade === g);
+    const avg = gRecs.filter(r=>r.rating>0).reduce((s,r)=>s+r.rating,0) / (gRecs.filter(r=>r.rating>0).length||1);
+    const engaging = gRecs.filter(r => r.learnings_engagement.toLowerCase().includes('engaging')).length;
+    const chapters = new Set();
+    gRecs.forEach(r => r.lessons.forEach(l => chapters.add(l.chapter)));
+    const themes = {};
+    gRecs.forEach(r => r.themes.forEach(t => { themes[t] = (themes[t]||0) + 1; }));
+    const topThemes = Object.entries(themes).sort((a,b) => b[1]-a[1]).slice(0, 4);
+
+    html += `<div class="card">
+      <div class="card-header">Grade ${g}</div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+        <span class="rating-badge ${avg >= 4 ? 'green' : avg >= 3 ? 'amber' : 'red'}">${avg.toFixed(1)}</span>
+        ${renderStars(avg)}
+        <span class="card-detail">${gRecs.length} responses</span>
+      </div>
+      <div class="chapter-meta">${chapters.size} chapters, ${Math.round(engaging/gRecs.length*100)}% engaging</div>
+      ${topThemes.length ? '<div style="margin-top:8px;">' + topThemes.map(([t,c]) => `<span class="theme-tag">${t} (${c})</span>`).join('') + '</div>' : ''}
+    </div>`;
+  });
+  html += '</div></div>';
+  return html;
+}
+
+// --- SECTION 3: CHAPTERS ---
+function renderChapters() {
+  const recs = filtered();
+  const chapterMap = {};
+  recs.forEach(r => {
+    r.lessons.forEach(l => {
+      if (!chapterMap[l.chapter]) chapterMap[l.chapter] = { lessons: new Set(), records: [], grade: r.grade };
+      chapterMap[l.chapter].lessons.add(l.lesson);
+      chapterMap[l.chapter].records.push(r);
+    });
+  });
+
+  let html = '<div class="section active"><h2 class="section-title">Chapters <span class="badge">' + Object.keys(chapterMap).length + ' chapters</span></h2>';
+  html += '<div class="grid grid-3">';
+
+  Object.entries(chapterMap).sort((a,b) => a[0].localeCompare(b[0])).forEach(([ch, info]) => {
+    const avg = info.records.filter(r=>r.rating>0).reduce((s,r)=>s+r.rating,0) / (info.records.filter(r=>r.rating>0).length||1);
+    const engaging = info.records.filter(r => r.learnings_engagement.toLowerCase().includes('engaging')).length;
+    const tooLong = info.records.filter(r => r.learnings_length.toLowerCase().includes('too long')).length;
+    const tooShort = info.records.filter(r => r.learnings_length.toLowerCase().includes('too short')).length;
+
+    html += `<div class="card chapter-card" onclick="drillChapter='${ch.replace(/'/g,"\\'")}';render()">
+      <div style="display:flex;justify-content:space-between;align-items:start;">
+        <div>
+          <div class="chapter-name">${ch}</div>
+          <div class="chapter-meta">Grade ${info.grade} &middot; ${info.lessons.size} lessons &middot; ${info.records.length} responses</div>
+        </div>
+        <span class="rating-badge ${avg >= 4 ? 'green' : avg >= 3 ? 'amber' : 'red'}">${avg.toFixed(1)}</span>
+      </div>
+      <div style="margin-top:8px;">
+        <span class="flag flag-green">${Math.round(engaging/info.records.length*100)}% engaging</span>
+        ${tooLong ? `<span class="flag flag-red">${tooLong} say too long</span>` : ''}
+        ${tooShort ? `<span class="flag flag-amber">${tooShort} say too short</span>` : ''}
+      </div>
+    </div>`;
+  });
+
+  html += '</div></div>';
+  return html;
+}
+
+function renderLessonDrill() {
+  const recs = filtered().filter(r => r.lessons.some(l => l.chapter === drillChapter));
+  const lessonMap = {};
+  recs.forEach(r => {
+    r.lessons.filter(l => l.chapter === drillChapter).forEach(l => {
+      if (!lessonMap[l.lesson]) lessonMap[l.lesson] = [];
+      lessonMap[l.lesson].push(r);
+    });
+  });
+
+  let html = `<div class="section active">
+    <button class="back-btn no-print" onclick="drillChapter=null;render()">\u2190 Back to Chapters</button>
+    <h2 class="section-title">${drillChapter} <span class="badge">${Object.keys(lessonMap).length} lessons</span></h2>`;
+
+  html += '<div class="card" style="overflow-x:auto;"><table class="lesson-table"><thead><tr><th>Lesson</th><th>Rating</th><th>Engagement</th><th>Length</th><th>Tutors</th><th>Key Feedback</th></tr></thead><tbody>';
+
+  Object.entries(lessonMap).sort((a,b) => a[0].localeCompare(b[0])).forEach(([lesson, lRecs]) => {
+    const avg = lRecs.filter(r=>r.rating>0).reduce((s,r)=>s+r.rating,0) / (lRecs.filter(r=>r.rating>0).length||1);
+    const engaging = lRecs.filter(r => r.learnings_engagement.toLowerCase().includes('engaging')).length;
+    const length = lRecs.map(r => {
+      if (r.learnings_length.toLowerCase().includes('too long')) return 'long';
+      if (r.learnings_length.toLowerCase().includes('too short')) return 'short';
+      return 'ok';
+    });
+    const lengthFlag = length.includes('long') ? '<span class="flag flag-red">Too long</span>' : length.includes('short') ? '<span class="flag flag-amber">Too short</span>' : '<span class="flag flag-green">Right</span>';
+
+    const feedback = lRecs.map(r => [r.learning_suggestions, r.practice_suggestions, r.overall_suggestions].filter(Boolean)).flat().filter(Boolean);
+    const tutorNames = [...new Set(lRecs.map(r => r.name))];
+
+    html += `<tr>
+      <td><strong>${lesson}</strong></td>
+      <td><span class="${avg >= 4 ? 'green' : avg >= 3 ? 'amber' : 'red'}" style="font-weight:700;">${avg.toFixed(1)}</span> ${renderStars(avg)}</td>
+      <td>${Math.round(engaging/lRecs.length*100)}%</td>
+      <td>${lengthFlag}</td>
+      <td>${tutorNames.map(n => `<span style="font-size:11px;">${n}</span>`).join(', ')}</td>
+      <td>${feedback.slice(0,2).map(f => `<div class="quote">${f.slice(0,200)}${f.length>200?'...':''}</div>`).join('')}</td>
+    </tr>`;
+  });
+
+  html += '</tbody></table></div></div>';
+  return html;
+}
+
+// --- SECTION 4: THEMES ---
+function renderThemes() {
+  const recs = filtered();
+  const themes = {};
+  recs.forEach(r => r.themes.forEach(t => { themes[t] = (themes[t]||0) + 1; }));
+  const sorted = Object.entries(themes).sort((a,b) => b[1]-a[1]);
+  const maxCount = sorted[0]?.[1] || 1;
+
+  const themeColors = {
+    'Drag & Drop Issues': '#ef4444', 'Video Speed/Quality': '#f97316', 'More Fun/Games Needed': '#eab308',
+    'Language Complexity': '#8b5cf6', 'Too Many Questions': '#ec4899', 'More Real-Life Context': '#14b8a6',
+    'Visual/Image Needs': '#3b82f6', 'More Examples Needed': '#6366f1', 'Interactive Elements': '#06b6d4',
+    'Error/Bug Reports': '#dc2626', 'Difficulty Level': '#f59e0b', 'Length Issues': '#84cc16',
+  };
+
+  let html = '<div class="section active"><h2 class="section-title">Feedback Themes <span class="badge">' + sorted.length + ' themes detected</span></h2>';
+
+  // Theme frequency chart
+  html += '<div class="card" style="margin-bottom:16px;"><div class="card-header">Theme Frequency</div><div class="bar-chart">';
+  sorted.forEach(([theme, count]) => {
+    const pct = (count / maxCount) * 100;
+    const color = themeColors[theme] || '#64748b';
+    html += `<div class="bar-row"><span class="bar-label" style="min-width:180px;">${theme}</span><div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${color}"><span>${count}</span></div></div></div>`;
+  });
+  html += '</div></div>';
+
+  // Theme breakdown by grade
+  html += '<div class="card" style="margin-bottom:16px;"><div class="card-header">Themes by Grade</div>';
+  const gradeThemes = {};
+  recs.forEach(r => {
+    if (!gradeThemes[r.grade]) gradeThemes[r.grade] = {};
+    r.themes.forEach(t => { gradeThemes[r.grade][t] = (gradeThemes[r.grade][t]||0) + 1; });
+  });
+  html += '<table class="lesson-table"><thead><tr><th>Theme</th>';
+  DATA.grades.forEach(g => { html += `<th>Grade ${g}</th>`; });
+  html += '</tr></thead><tbody>';
+  sorted.forEach(([theme]) => {
+    html += `<tr><td><span class="theme-tag">${theme}</span></td>`;
+    DATA.grades.forEach(g => {
+      const c = gradeThemes[g]?.[theme] || 0;
+      html += `<td>${c ? `<strong>${c}</strong>` : '<span style="color:#e2e8f0;">-</span>'}</td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table></div>';
+
+  // Sample quotes per theme
+  html += '<div class="card"><div class="card-header">Sample Feedback by Theme</div>';
+  sorted.slice(0, 6).forEach(([theme]) => {
+    const quotes = [];
+    recs.forEach(r => {
+      if (r.themes.includes(theme)) {
+        [r.learning_suggestions, r.practice_suggestions, r.overall_suggestions].forEach(s => {
+          if (s) quotes.push({ text: s, name: r.name, grade: r.grade });
+        });
+      }
+    });
+    if (quotes.length) {
+      html += `<div style="margin-top:12px;"><strong>${theme}</strong>`;
+      quotes.slice(0, 2).forEach(q => {
+        html += `<div class="quote">${q.text.slice(0, 300)}${q.text.length>300?'...':''}<div class="quote-author">\u2014 ${q.name}, Grade ${q.grade}</div></div>`;
+      });
+      html += '</div>';
+    }
+  });
+  html += '</div></div>';
+  return html;
+}
+
+// --- SECTION 5: ACTIONS & PRINCIPLES ---
+function renderActions() {
+  const recs = filtered();
+
+  let html = '<div class="section active"><h2 class="section-title">Action Items & Principles</h2>';
+
+  // Flagged lessons
+  html += '<div class="card" style="margin-bottom:16px;"><div class="card-header">Lessons Flagged for Review</div>';
+  const lessonFlags = {};
+  recs.forEach(r => {
+    r.lessons.forEach(l => {
+      const key = `${l.chapter} \u2192 ${l.lesson}`;
+      if (!lessonFlags[key]) lessonFlags[key] = { records: [], flags: [] };
+      lessonFlags[key].records.push(r);
+      if (r.rating <= 3) lessonFlags[key].flags.push('low-rating');
+      if (r.learnings_length.toLowerCase().includes('too long')) lessonFlags[key].flags.push('too-long');
+      if (r.learnings_length.toLowerCase().includes('too short')) lessonFlags[key].flags.push('too-short');
+      if (r.learnings_engagement.toLowerCase().includes('need more')) lessonFlags[key].flags.push('low-engagement');
+    });
+  });
+
+  const flagged = Object.entries(lessonFlags)
+    .filter(([, v]) => v.flags.length > 0)
+    .sort((a,b) => b[1].flags.length - a[1].flags.length);
+
+  if (flagged.length === 0) {
+    html += '<p style="color:#94a3b8;font-size:13px;">No lessons flagged for review in the current filter.</p>';
+  } else {
+    flagged.forEach(([lesson, info]) => {
+      const flagCounts = {};
+      info.flags.forEach(f => { flagCounts[f] = (flagCounts[f]||0)+1; });
+      const feedback = info.records.map(r => [r.learning_suggestions, r.practice_suggestions, r.overall_suggestions].filter(Boolean)).flat().filter(Boolean);
+
+      html += `<div class="action-item">
+        <div class="action-title">${lesson}</div>
+        <div style="margin-top:4px;">
+          ${flagCounts['low-rating'] ? `<span class="flag flag-red">${flagCounts['low-rating']}x low rating</span>` : ''}
+          ${flagCounts['too-long'] ? `<span class="flag flag-red">${flagCounts['too-long']}x too long</span>` : ''}
+          ${flagCounts['too-short'] ? `<span class="flag flag-amber">${flagCounts['too-short']}x too short</span>` : ''}
+          ${flagCounts['low-engagement'] ? `<span class="flag flag-amber">${flagCounts['low-engagement']}x low engagement</span>` : ''}
+        </div>
+        ${feedback.length ? `<div class="action-detail" style="margin-top:8px;">${feedback.slice(0,2).map(f => `<div class="quote">${f.slice(0,250)}</div>`).join('')}</div>` : ''}
+      </div>`;
+    });
+  }
+  html += '</div>';
+
+  // Auto-generated principles
+  const principles = DATA.principles.filter(p => currentGrade === 'all' || p.grade === currentGrade);
+  html += '<div class="card"><div class="card-header">Auto-Generated Principles</div><div class="grid grid-2" style="margin-top:12px;">';
+  if (principles.length === 0) {
+    html += '<p style="color:#94a3b8;font-size:13px;">No principles generated for the current filter.</p>';
+  } else {
+    principles.forEach(p => {
+      html += `<div class="principle-card">
+        <div class="principle-grade">Grade ${p.grade} \u2014 ${p.theme}</div>
+        <div class="principle-text">${p.principle}</div>
+        <div class="principle-evidence">Based on ${p.count} tutor mentions</div>
+      </div>`;
+    });
+  }
+  html += '</div></div></div>';
+  return html;
+}
+
+// --- SECTION 6: TUTORS ---
+function renderTutors() {
+  const recs = filtered();
+  const tutorMap = {};
+  recs.forEach(r => {
+    if (!tutorMap[r.name]) tutorMap[r.name] = { count: 0, grades: new Set(), chapters: new Set() };
+    tutorMap[r.name].count++;
+    tutorMap[r.name].grades.add(r.grade);
+    r.lessons.forEach(l => tutorMap[r.name].chapters.add(l.chapter));
+  });
+
+  const sorted = Object.entries(tutorMap).sort((a,b) => b[1].count - a[1].count);
+  const maxCount = sorted[0]?.[1].count || 1;
+
+  let html = '<div class="section active"><h2 class="section-title">Tutor Contributions <span class="badge">' + sorted.length + ' tutors</span></h2>';
+  html += '<div class="card">';
+
+  sorted.forEach(([name, info], i) => {
+    const pct = (info.count / maxCount) * 100;
+    const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+    const gradeBadges = [...info.grades].sort().map(g => `<span class="grade-badge grade-${g}">G${g}</span>`).join('');
+
+    html += `<div class="tutor-bar">
+      <span class="tutor-rank ${rankClass}">#${i+1}</span>
+      <span class="tutor-name">${name}</span>
+      <div class="tutor-badges">${gradeBadges}</div>
+      <div class="tutor-track"><div class="tutor-fill" style="width:${pct}%"><span>${info.count}</span></div></div>
+      <span style="font-size:11px;color:#94a3b8;min-width:80px;">${info.chapters.size} chapters</span>
+    </div>`;
+  });
+
+  html += '</div></div>';
+  return html;
+}
+
+// --- SECTION 7: SUMMARY ---
+function renderSummary() {
+  const recs = DATA.records;
+  const totalResponses = recs.length;
+  const uniqueTutors = new Set(recs.map(r => r.name)).size;
+  const uniqueChapters = new Set(recs.flatMap(r => r.lessons.map(l => l.chapter))).size;
+  const totalLessons = new Set(recs.flatMap(r => r.lessons.map(l => l.chapter + '|' + l.lesson))).size;
+  const avgRating = (recs.reduce((s,r) => s + r.rating, 0) / totalResponses).toFixed(1);
+  const grades = [...new Set(recs.map(r => r.grade))].sort();
+
+  // Engagement stats
+  const engagingCount = recs.filter(r => r.learnings_engagement && r.learnings_engagement.toLowerCase().includes('engaging')).length;
+  const rightLenCount = recs.filter(r => r.learnings_length && r.learnings_length.toLowerCase().includes('right')).length;
+  const langClearCount = recs.filter(r => r.learnings_language && r.learnings_language.toLowerCase().includes('well')).length;
+  const engPct = Math.round(engagingCount / totalResponses * 100);
+  const lenPct = Math.round(rightLenCount / totalResponses * 100);
+  const langPct = Math.round(langClearCount / totalResponses * 100);
+
+  // Weekly activity from timestamps
+  const weekMap = {};
+  recs.forEach(r => {
+    const d = new Date(r.timestamp);
+    const weekStart = new Date(d);
+    weekStart.setDate(d.getDate() - d.getDay() + 1);
+    const key = weekStart.toISOString().slice(0,10);
+    if (!weekMap[key]) weekMap[key] = { responses: 0, tutors: {} };
+    weekMap[key].responses++;
+    if (!weekMap[key].tutors[r.name]) weekMap[key].tutors[r.name] = 0;
+    weekMap[key].tutors[r.name]++;
+  });
+  const weeks = Object.entries(weekMap).sort((a,b) => a[0].localeCompare(b[0]));
+
+  // Top tutors overall
+  const tutorCounts = {};
+  recs.forEach(r => {
+    if (!tutorCounts[r.name]) tutorCounts[r.name] = { count: 0, grades: new Set() };
+    tutorCounts[r.name].count++;
+    tutorCounts[r.name].grades.add(r.grade);
+  });
+  const topTutors = Object.entries(tutorCounts).sort((a,b) => b[1].count - a[1].count).slice(0, 7);
+
+  // Top themes (computed from records)
+  const themeCounts = {};
+  recs.forEach(r => (r.themes || []).forEach(t => { themeCounts[t] = (themeCounts[t]||0) + 1; }));
+  const topThemes = Object.entries(themeCounts).sort((a,b) => b[1] - a[1]).slice(0, 5).map(([theme, count]) => ({ theme, count }));
+
+  let html = '<div class="section active">';
+
+  // Header
+  html += `<div class="summary-header">
+    <h2>Tutor Feedback Summary</h2>
+    <div class="sub">Cuemath Curriculum Team &mdash; Grades ${grades.join(', ')}</div>
+    <div class="summary-stats">
+      <div class="summary-stat"><div class="val">${totalResponses}</div><div class="label">Responses</div></div>
+      <div class="summary-stat"><div class="val">${uniqueTutors}</div><div class="label">Tutors</div></div>
+      <div class="summary-stat"><div class="val">${uniqueChapters}</div><div class="label">Chapters</div></div>
+      <div class="summary-stat"><div class="val">${totalLessons}</div><div class="label">Lessons</div></div>
+      <div class="summary-stat"><div class="val">${avgRating}</div><div class="label">Avg Rating</div></div>
+    </div>
+  </div>`;
+
+  // What tutors told us
+  html += `<h3 style="font-size:16px;font-weight:700;margin-bottom:12px;">What You Told Us</h3>
+    <div class="grid grid-3" style="margin-bottom:20px;">
+      <div class="card" style="text-align:center;"><div style="font-size:28px;font-weight:800;color:#22c55e;">${engPct}%</div><div style="font-size:12px;color:#64748b;">Found lessons engaging</div></div>
+      <div class="card" style="text-align:center;"><div style="font-size:28px;font-weight:800;color:#3b82f6;">${lenPct}%</div><div style="font-size:12px;color:#64748b;">Said length is just right</div></div>
+      <div class="card" style="text-align:center;"><div style="font-size:28px;font-weight:800;color:#8b5cf6;">${langPct}%</div><div style="font-size:12px;color:#64748b;">Language is clear</div></div>
+    </div>`;
+
+  // Top themes reported
+  if (topThemes.length) {
+    html += `<h3 style="font-size:16px;font-weight:700;margin-bottom:12px;">Top Improvement Areas</h3><div style="margin-bottom:20px;">`;
+    topThemes.forEach(t => {
+      html += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <div style="width:120px;font-size:12px;font-weight:600;color:#475569;text-align:right;">${t.theme}</div>
+        <div style="flex:1;background:#e2e8f0;border-radius:4px;height:20px;"><div style="width:${Math.min(100, t.count * 10)}%;background:#3b82f6;border-radius:4px;height:100%;display:flex;align-items:center;padding-left:6px;"><span style="font-size:11px;color:white;font-weight:600;">${t.count}</span></div></div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+
+  // Immediate actions (from config or defaults)
+  const defaultImmediate = [
+    { title: 'Fixing Technical Issues', description: 'We are logging and fixing every bug you reported \u2014 simulation sync issues, incorrect answer validation, and selection color visibility. If you flagged a specific question, it\u2019s being tracked and fixed.' },
+    { title: 'Replacing Drag-and-Drop for Grade 1', description: 'For Grade 1 lessons, we are replacing drag-and-drop with click-to-select and type-in responses. We heard clearly that drag-and-drop is a barrier for young learners. Starting with \u201cMagic with More Numbers\u201d and \u201cTogether and Apart\u201d.' },
+    { title: 'Improving Language & Clarity', description: 'Lessons flagged for confusing language or text-heavy explanations are being rewritten to be simpler and more age-appropriate.' }
+  ];
+  const defaultPlanned = [
+    { title: 'Game-Based Practice Rounds', description: 'Many of you asked for Quizizz-style games, timed challenges, and point-based rewards. This is a bigger build that involves product and engineering \u2014 we\u2019re scoping it out and will share a timeline soon.' },
+    { title: 'More Fun & Interactive Elements', description: 'Animated characters, story-based framing, and reward mechanics were requested across grades. We\u2019re exploring the best ways to weave these in without disrupting lesson flow.' }
+  ];
+
+  const immediateActions = (SUMMARY_CONFIG && SUMMARY_CONFIG.immediate_actions) || defaultImmediate;
+  const futureActions = (SUMMARY_CONFIG && SUMMARY_CONFIG.planned_actions) || defaultPlanned;
+
+  html += `<h3 style="font-size:16px;font-weight:700;margin-bottom:4px;">What We're Doing Right Now</h3>
+    <p style="font-size:13px;color:#64748b;margin-bottom:12px;">These are being addressed immediately based on your feedback.</p>`;
+  immediateActions.forEach((a, i) => {
+    const cls = 'action-' + ((i % 3) + 1);
+    html += `<div class="action-card ${cls}"><h4>${a.title} <span style="font-size:10px;background:#dcfce7;color:#166534;padding:2px 8px;border-radius:8px;margin-left:6px;">In Progress</span></h4><p>${a.description}</p></div>`;
+  });
+
+  html += `<h3 style="font-size:16px;font-weight:700;margin:20px 0 4px;">On Our Radar</h3>
+    <p style="font-size:13px;color:#64748b;margin-bottom:12px;">We\u2019ve heard you on these. They require more planning and development time, but they\u2019re on the roadmap.</p>`;
+  futureActions.forEach((a, i) => {
+    const cls = 'action-' + ((i % 3) + 1);
+    html += `<div class="action-card ${cls}"><h4>${a.title} <span style="font-size:10px;background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:8px;margin-left:6px;">Planned</span></h4><p>${a.description}</p></div>`;
+  });
+
+  // Weekly spotlight
+  html += `<h3 style="font-size:16px;font-weight:700;margin:20px 0 12px;">Weekly Spotlight</h3><div class="weekly-spotlight">`;
+  weeks.forEach(([weekKey, info]) => {
+    const d = new Date(weekKey);
+    const month = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const topNames = Object.entries(info.tutors).sort((a,b) => b[1] - a[1]).slice(0, 3);
+    html += `<div class="week-card">
+      <div class="week-label">Week of ${month}</div>
+      <div class="week-count">${info.responses} responses</div>
+      <div class="week-tutors">${topNames.map(([n,c]) => `<strong>${n}</strong> (${c})`).join(', ')}</div>
+    </div>`;
+  });
+  html += '</div>';
+
+  // Most active tutors table
+  html += `<h3 style="font-size:16px;font-weight:700;margin:20px 0 12px;">Most Active Tutors</h3>
+    <div class="card"><table style="width:100%;border-collapse:collapse;">
+    <thead><tr style="border-bottom:2px solid #e2e8f0;">
+      <th style="text-align:left;padding:8px;font-size:12px;color:#64748b;">Tutor</th>
+      <th style="text-align:center;padding:8px;font-size:12px;color:#64748b;">Responses</th>
+      <th style="text-align:left;padding:8px;font-size:12px;color:#64748b;">Grades</th>
+    </tr></thead><tbody>`;
+  topTutors.forEach(([name, info]) => {
+    const gradeBadges = [...info.grades].sort().map(g => `<span class="grade-badge grade-${g}">G${g}</span>`).join(' ');
+    html += `<tr style="border-bottom:1px solid #f1f5f9;">
+      <td style="padding:8px;font-weight:600;font-size:13px;">${name}</td>
+      <td style="padding:8px;text-align:center;font-weight:700;color:#3b82f6;">${info.count}</td>
+      <td style="padding:8px;">${gradeBadges}</td>
+    </tr>`;
+  });
+  html += '</tbody></table></div>';
+
+  // Thank you banner
+  html += `<div class="thankyou-banner">
+    <p>Your feedback = better lessons = better student outcomes.<br><strong>Thank you for being part of this.</strong></p>
+    <p style="margin-top:8px;font-size:11px;color:#047857;">Continue submitting feedback as you review new chapters \u2014 the form is always open. We'll send these summaries every week so you can see your impact.</p>
+  </div>`;
+
+  html += '</div>';
+  return html;
+}
+
+// --- NAV ---
+document.querySelector('.nav-pills').addEventListener('click', e => {
+  if (e.target.classList.contains('nav-pill')) {
+    document.querySelectorAll('.nav-pill').forEach(b => b.classList.remove('active'));
+    e.target.classList.add('active');
+    currentSection = e.target.dataset.section;
+    drillChapter = null;
+    render();
+  }
+});
+
+// For PDF: render all sections
+window.addEventListener('beforeprint', () => {
+  const app = document.getElementById('app');
+  const sections = [renderOverview(), renderGrades(), renderChapters(), renderThemes(), renderActions(), renderTutors(), renderSummary()];
+  app.innerHTML = sections.join('<hr style="margin:20px 0;border:none;border-top:2px solid #e2e8f0;">');
+});
+
+window.addEventListener('afterprint', render);
+
+// Init
+loadData();
+</script>
+</body>
+</html>

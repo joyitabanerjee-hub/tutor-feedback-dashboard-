@@ -1,0 +1,26 @@
+{
+  "immediate_actions": [
+    {
+      "title": "Fixing Technical Issues",
+      "description": "We are logging and fixing every bug you reported — simulation sync issues, incorrect answer validation, and selection color visibility. If you flagged a specific question, it's being tracked and fixed."
+    },
+    {
+      "title": "Replacing Drag-and-Drop for Grade 1",
+      "description": "For Grade 1 lessons, we are replacing drag-and-drop with more child friendly responses. We heard clearly that drag-and-drop is a barrier for young learners. Starting with \"Magic with More Numbers\" and \"Together and Apart\"."
+    },
+    {
+      "title": "Improving Language & Clarity",
+      "description": "Lessons flagged for confusing language or text-heavy explanations are being rewritten to be simpler and more age-appropriate."
+    }
+  ],
+  "planned_actions": [
+    {
+      "title": "Game-Based Practice Rounds",
+      "description": "Many of you asked for Quizizz-style games, timed challenges, and point-based rewards. This is a bigger build that involves product and engineering — we're scoping it out and will share a timeline soon."
+    },
+    {
+      "title": "More Fun & Interactive Elements",
+      "description": "Animated characters, story-based framing, and reward mechanics were requested across grades. We're exploring the best ways to weave these in without disrupting lesson flow."
+    }
+  ]
+}
