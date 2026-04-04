@@ -306,6 +306,16 @@ function processCSV(csvText) {
     return 'Unknown';
   }
 
+  // Carry forward: Activity Reference, Grade, Reviewer Name, Phone from parent row to child rows
+  let lastActivity = '', lastGrade = '', lastName = '', lastPhone = '';
+  dataRows.forEach(r => {
+    if ((r[0] || '').trim()) { lastActivity = r[0].trim(); lastGrade = (r[1] || '').trim(); lastName = (r[2] || '').trim(); lastPhone = (r[3] || '').trim(); }
+    if (!(r[0] || '').trim()) r[0] = lastActivity;
+    if (!(r[1] || '').trim()) r[1] = lastGrade;
+    if (!(r[2] || '').trim()) r[2] = lastName;
+    if (!(r[3] || '').trim()) r[3] = lastPhone;
+  });
+
   // Deduplicate: same reviewer + same item reference = keep latest
   const dedupMap = {};
   dataRows.forEach(r => {
